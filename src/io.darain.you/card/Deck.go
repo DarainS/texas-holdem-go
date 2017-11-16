@@ -9,9 +9,9 @@ type Deck struct {
 }
 
 func (deck Deck)FromString(h Hands,s string)Deck {
-	deck.ShowList=append(deck.ShowList,Card{}.FromString(s[:2]))
-	deck.ShowList=append(deck.ShowList,Card{}.FromString(s[2:4]))
-	deck.ShowList=append(deck.ShowList,Card{}.FromString(s[4:]))
+	for i:=0;i<len(s);i+=2 {
+		deck.ShowList=append(deck.ShowList,Card{}.FromString(s[i:i+2]))
+	}
 	return deck
 }
 
