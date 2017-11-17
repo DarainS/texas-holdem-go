@@ -1,4 +1,4 @@
-package card
+package board
 
 type Card struct {
 	Tag    uint8
