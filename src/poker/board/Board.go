@@ -50,8 +50,21 @@ func (board Board) resolveFlush(cardList []Card) int64 {
 		return 0
 	}
 	res := int64(5)
-	for _, card := range cardList {
+	for _, card := range cardList[0:5] {
 		res = res*100 + int64(card.Num)
 	}
 	return res
 }
+
+func (board Board)calculateValue(value... int)int64  {
+	res:=int64(0)
+	res=int64(value[0])
+	for _,v :=range value{
+		res=res*100+int64(v)
+	}
+	for i:=len(value);i<5;i++ {
+		res*=100
+	}
+	return res
+}
+
