@@ -1,9 +1,9 @@
 package board
 
 type Card struct {
-	Tag    uint8
-	Num    int
-	Symbol uint8
+	tag    uint8
+	num    int
+	symbol uint8
 }
 
 var symbolTable = map[int]int{
@@ -11,20 +11,31 @@ var symbolTable = map[int]int{
 }
 
 func (c Card) FromString(s string) Card {
-	c.Symbol = s[0]
-	c.Tag = s[1]
-	c.Num = symbolTable[int(c.Symbol)]
+	c.symbol = s[0]
+	c.tag = s[1]
+	c.num = symbolTable[int(c.symbol)]
 	return c
 }
 
 func (c Card) ToString() string {
-	return string(c.Symbol) + string(c.Tag)
+	return string(c.symbol) + string(c.tag)
 }
 
 func (c Card) Less(that Card) bool {
-	return c.Num<that.Num
+	return c.num <that.num
 }
 
+func (c Card) Tag() uint8  {
+	return c.tag
+}
+
+func (c Card) Num() int  {
+	return c.num
+}
+
+func (c Card) Symbol() uint8  {
+	return c.symbol
+}
 
 type Hands [2]Card
 
@@ -32,7 +43,7 @@ func (h Hands) FromString(s string) Hands {
 	if len(s) == 4 {
 		c1 := Card{}.FromString(s[0:2])
 		c2 := Card{}.FromString(s[2:4])
-		if c1.Num>=c2.Num {
+		if c1.num >=c2.num {
 			h[0],h[1]=c1,c2
 		}else {
 			h[0],h[1]=c2,c1
@@ -46,10 +57,10 @@ func (h Hands) ToString() string {
 }
 
 func (h Hands) ToSingleString() string {
-	s1 := string(h[0].Symbol + h[1].Symbol)
-	if h[0].Num == h[1].Num {
+	s1 := string(h[0].symbol + h[1].symbol)
+	if h[0].num == h[1].num {
 		return s1
-	} else if h[0].Tag == h[1].Tag {
+	} else if h[0].tag == h[1].tag {
 		return s1 + "s"
 	}
 	return s1 + "o"

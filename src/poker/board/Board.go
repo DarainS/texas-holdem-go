@@ -28,7 +28,7 @@ func (board Board) resolvePair(h Hands) {
 func (board Board) generateTempCardList(h Hands) []Card {
 	result := append(board.ShowList, h[0], h[1])
 	sort.Slice(result, func(i, j int) bool {
-		return result[i].Num > result[j].Num
+		return result[i].num > result[j].num
 	})
 	return result
 }
@@ -38,7 +38,7 @@ func (board Board) resolveFlush(cardList []Card) int64 {
 		'c': 0, 's': 0, 'h': 0, 'd': 0,
 	}
 	for _, card := range cardList {
-		tagMap[card.Tag] += 1
+		tagMap[card.tag] += 1
 	}
 	var tag uint8
 	for tag2, num := range tagMap {
@@ -51,7 +51,7 @@ func (board Board) resolveFlush(cardList []Card) int64 {
 	}
 	res := int64(5)
 	for _, card := range cardList[0:5] {
-		res = res*100 + int64(card.Num)
+		res = res*100 + int64(card.num)
 	}
 	return res
 }
