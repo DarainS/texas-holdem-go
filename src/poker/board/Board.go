@@ -2,7 +2,7 @@ package board
 
 import (
 	"sort"
-	"sync/atomic"
+	"strconv"
 )
 
 type Board struct {
@@ -17,20 +17,20 @@ type Board struct {
 
 var (
 	LevelMap = map[int]string{
-		0:"高牌",
-		1:"一对",
-		2:"两对",
-		3:"三条",
-		4:"顺子",
-		5:"同花",
-		6:"葫芦",
-		7:"四条",
-		8:"同花顺",
+		0: "高牌",
+		1: "一对",
+		2: "两对",
+		3: "三条",
+		4: "顺子",
+		5: "同花",
+		6: "葫芦",
+		7: "四条",
+		8: "同花顺",
 	}
 )
 
-func (board Board)String()string  {
-	return board.LevelText+" "+" "+string(board.value)
+func (board *Board) String() string {
+	return board.LevelText + " " + " " + strconv.FormatInt(board.value, 10)
 }
 
 func NewBoard(h Hands, s string) Board {
@@ -39,24 +39,26 @@ func NewBoard(h Hands, s string) Board {
 	for i := 0; i < len(s); i += 2 {
 		board.ShowList = append(board.ShowList, NewCard(s[i:i+2]))
 	}
+	board.Deck=NewDeck()
 	return board
 }
 
-func (board Board) ResolveValue(h Hands) int64 {
-	cards := board.generateTempCardList(h)
+func (board *Board) DealHands(playerNum int) []Hands {
+	handsList := make([]Hands, playerNum)
+	for i := 0; i < cap(handsList); i++ {
+		h := Hands{}
+		h[0] = board.Deck.DealOne()
+		h[1] = board.Deck.DealOne()
+		handsList[i] = h
+	}
+	return handsList
+}
+
+func ResolveValue(cards []Card) int64 {
+	SortCards(cards)
 	numMap := generateCardNumMap(cards)
 	tagMap := generateTagNumMap(cards)
 	var value int64
-	defer func() {
-		board.value =value
-		s:=string(value)
-		if len(s)==11 {
-			board.Level=int(s[0])
-		}else {
-			board.Level=0
-		}
-		board.LevelText=LevelMap[board.Level]
-	}()
 	if value = resolveStraightFlushAndFlush(cards, numMap, tagMap); value > 0 {
 		return value
 	}
@@ -79,6 +81,18 @@ func (board Board) ResolveValue(h Hands) int64 {
 		return value
 	}
 	return -1
+}
+
+func (board *Board) ResolveHandsValue(h Hands) {
+	cards := board.generateTempCardList(h)
+	board.value = ResolveValue(cards)
+	s := strconv.FormatInt(board.value, 10)
+	if len(s) == 11 {
+		board.Level = int(s[0]) - int('0')
+	} else {
+		board.Level = 0
+	}
+	board.LevelText = LevelMap[board.Level]
 }
 
 func resolveStraightFlushAndFlush(cards []Card, numMap map[int]int, tagMap map[uint8]int) int64 {
@@ -307,7 +321,7 @@ func generateTagNumMap(cards []Card) map[uint8]int {
 	return tagMap
 }
 
-func (board Board) calculateValue(value ... int) int64 {
+func (board *Board) calculateValue(value ... int) int64 {
 	res := int64(0)
 	res = int64(value[0])
 	for _, v := range value {
