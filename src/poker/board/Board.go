@@ -6,13 +6,17 @@ import (
 )
 
 type Board struct {
-	hand      Hands
-	Deck      Deck
-	ShowList  []Card
-	LevelText string
-	Level     int
-	tempCards []Card
+	hand     Hands
+	Deck     Deck
+	ShowList []Card
+}
+
+type HandsResult struct {
+	hands     Hands
+	cards     []Card
 	value     int64
+	level     int
+	levelText string
 }
 
 var (
@@ -29,8 +33,16 @@ var (
 	}
 )
 
-func (board *Board) String() string {
-	return board.LevelText + " " + " " + strconv.FormatInt(board.value, 10)
+func (r *HandsResult) String() string {
+	return r.levelText + " " + CardsToString(r.cards) + " " + strconv.FormatInt(r.value, 10)
+}
+
+func CardsToString(cards []Card) string {
+	res := ""
+	for _, card := range cards {
+		res += card.String()
+	}
+	return res
 }
 
 func NewBoard(h Hands, s string) Board {
@@ -39,7 +51,7 @@ func NewBoard(h Hands, s string) Board {
 	for i := 0; i < len(s); i += 2 {
 		board.ShowList = append(board.ShowList, NewCard(s[i:i+2]))
 	}
-	board.Deck=NewDeck()
+	board.Deck = NewDeck()
 	return board
 }
 
@@ -83,16 +95,20 @@ func ResolveValue(cards []Card) int64 {
 	return -1
 }
 
-func (board *Board) ResolveHandsValue(h Hands) {
+func (board *Board) ResolveHandsValue(h Hands) HandsResult {
 	cards := board.generateTempCardList(h)
-	board.value = ResolveValue(cards)
-	s := strconv.FormatInt(board.value, 10)
+	res := HandsResult{}
+	res.hands = h
+	res.cards = cards
+	res.value = ResolveValue(cards)
+	s := strconv.FormatInt(res.value, 10)
 	if len(s) == 11 {
-		board.Level = int(s[0]) - int('0')
+		res.level = int(s[0]) - int('0')
 	} else {
-		board.Level = 0
+		res.level = 0
 	}
-	board.LevelText = LevelMap[board.Level]
+	res.levelText = LevelMap[res.level]
+	return res
 }
 
 func resolveStraightFlushAndFlush(cards []Card, numMap map[int]int, tagMap map[uint8]int) int64 {

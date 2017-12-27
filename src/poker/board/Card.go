@@ -22,6 +22,9 @@ func (c Card) fromString(s string) Card {
 	return c
 }
 
+func (c Card) ToString() string {
+	return string(c.symbol) + string(c.tag)
+}
 func (c Card) String() string {
 	return string(c.symbol) + string(c.tag)
 }
