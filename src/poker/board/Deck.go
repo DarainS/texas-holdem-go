@@ -8,15 +8,14 @@ import (
 
 type Deck []Card
 
-
-func (deck Deck)DealOne()Card  {
-	c:=&deck[0]
-	deck=deck[1:]
+func (deck Deck) DealOne() Card {
+	c := &deck[0]
+	deck = deck[1:]
 	return *c
 }
 
-func NewDeck()Deck  {
-	deck:=Deck{}
+func NewDeck() Deck {
+	deck := Deck{}
 	r := rand.New(rand.NewSource(time.Now().Unix()))
 	for _, i := range r.Perm(len(deck)) {
 		val := deck[i]
@@ -24,4 +23,3 @@ func NewDeck()Deck  {
 	}
 	return deck
 }
-

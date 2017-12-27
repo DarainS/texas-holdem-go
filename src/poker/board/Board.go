@@ -1,49 +1,155 @@
 package board
 
-import "sort"
+import (
+	"sort"
+	"sync/atomic"
+)
 
 type Board struct {
-	HandsList []Hands
+	hand      Hands
 	Deck      Deck
 	ShowList  []Card
+	LevelText string
+	Level     int
+	tempCards []Card
+	value     int64
 }
 
-func (board Board) FromString(h Hands, s string) Board {
+var (
+	LevelMap = map[int]string{
+		0:"高牌",
+		1:"一对",
+		2:"两对",
+		3:"三条",
+		4:"顺子",
+		5:"同花",
+		6:"葫芦",
+		7:"四条",
+		8:"同花顺",
+	}
+)
+
+func (board Board)String()string  {
+	return board.LevelText+" "+" "+string(board.value)
+}
+
+func NewBoard(h Hands, s string) Board {
+	board := Board{}
+	board.hand = h
 	for i := 0; i < len(s); i += 2 {
-		board.ShowList = append(board.ShowList, Card{}.FromString(s[i:i+2]))
+		board.ShowList = append(board.ShowList, NewCard(s[i:i+2]))
 	}
 	return board
 }
 
 func (board Board) ResolveValue(h Hands) int64 {
 	cards := board.generateTempCardList(h)
-	value := board.resolveFlush(cards)
-	return value
-}
-
-func (board Board) resolvePair(h Hands) {
-
-}
-
-func (board Board) generateTempCardList(h Hands) []Card {
-	result := append(board.ShowList, h[0], h[1])
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].num > result[j].num
-	})
-	return result
-}
-
-func (board Board) resolveFlush(cardList []Card) int64 {
-	tagMap := map[uint8]int{
-		'c': 0, 's': 0, 'h': 0, 'd': 0,
+	numMap := generateCardNumMap(cards)
+	tagMap := generateTagNumMap(cards)
+	var value int64
+	defer func() {
+		board.value =value
+		s:=string(value)
+		if len(s)==11 {
+			board.Level=int(s[0])
+		}else {
+			board.Level=0
+		}
+		board.LevelText=LevelMap[board.Level]
+	}()
+	if value = resolveStraightFlushAndFlush(cards, numMap, tagMap); value > 0 {
+		return value
 	}
-	for _, card := range cardList {
-		tagMap[card.tag] += 1
+	if value := resolveQuads(cards, numMap); value > 0 {
+		return value
 	}
+	if value := resolveFullHouse(cards, numMap); value > 0 {
+		return value
+	}
+	if value := resolveStraight(cards, numMap); value > 0 {
+		return value
+	}
+	if value := resolveSet(cards, numMap); value > 0 {
+		return value
+	}
+	if value = resolvePair(cards, numMap); value > 0 {
+		return value
+	}
+	if value = resolveHigh(cards); value > 0 {
+		return value
+	}
+	return -1
+}
+
+func resolveStraightFlushAndFlush(cards []Card, numMap map[int]int, tagMap map[uint8]int) int64 {
+	tag := testFlush(tagMap)
+	if tag == 0 {
+		return 0
+	}
+	straightCards := make([]Card, 7)
+	for _, card := range cards {
+		if card.tag == tag {
+			straightCards = append(straightCards, card)
+		}
+	}
+	SortCards(straightCards)
+	if num := testStraight(straightCards, generateCardNumMap(straightCards)); num > 0 {
+		return calculateValue(8, []int{num, num - 1, num - 2, num - 3, num - 4})
+	} else {
+		return resolveFlush(cards, tagMap)
+	}
+	return 0
+}
+
+func resolveQuads(cards []Card, numMap map[int]int) int64 {
+	f, h := 0, 0
+	for i := 14; i >= 2; i-- {
+		if numMap[i] >= 4 && f == 0 {
+			f = i
+		}
+		if numMap[i] >= 1 && f != i {
+			h = i
+			break
+		}
+	}
+	if f == 0 || h == 0 {
+		return 0
+	}
+	return calculateValue(7, []int{f, h})
+}
+
+func resolveFullHouse(cards []Card, numMap map[int]int) int64 {
+	f, h := 0, 0
+	for i := 14; i >= 2; i-- {
+		if numMap[i] >= 3 && f == 0 {
+			f = i
+		}
+		if numMap[i] >= 2 && f != i {
+			h = i
+			break
+		}
+	}
+	if f == 0 || h == 0 {
+		return 0
+	}
+	return calculateValue(6, []int{f, h})
+}
+
+func testFlush(tagMap map[uint8]int) uint8 {
+	for tag, num := range tagMap {
+		if num >= 5 {
+			return tag
+		}
+	}
+	return 0
+}
+
+func resolveFlush(cardList []Card, tagMap map[uint8]int) int64 {
 	var tag uint8
 	for tag2, num := range tagMap {
 		if num >= 5 {
 			tag = tag2
+			break
 		}
 	}
 	if tag == 0 {
@@ -56,15 +162,159 @@ func (board Board) resolveFlush(cardList []Card) int64 {
 	return res
 }
 
-func (board Board)calculateValue(value... int)int64  {
-	res:=int64(0)
-	res=int64(value[0])
-	for _,v :=range value{
-		res=res*100+int64(v)
+func testStraight(cards []Card, numMap map[int]int) int {
+	for i := 14; i >= 5; i-- {
+		isStraight := true
+		for j := 0; i <= 4; j++ {
+			if !(numMap[i-j] >= 1) {
+				isStraight = false
+				break
+			}
+		}
+		if isStraight {
+			return i
+		}
 	}
-	for i:=len(value);i<5;i++ {
-		res*=100
+	return 0
+}
+
+func resolveStraight(cards []Card, numMap map[int]int) int64 {
+	if i := testStraight(cards, numMap); i > 0 {
+		return calculateValue(4, []int{i, i - 1, i - 2, i - 3, i - 4})
+	}
+	return 0
+}
+
+func resolveSet(cards []Card, numMap map[int]int) int64 {
+	f, h1, h2 := 0, 0, 0
+	for i := 14; i >= 2; i-- {
+		if numMap[i] >= 3 {
+			f = i
+			break
+		}
+	}
+	if f == 0 {
+		return 0
+	}
+	for i := 14; i >= 2; i-- {
+		if numMap[i] >= 1 {
+			if f != i {
+				if h1 == 0 {
+					h1 = i
+				} else {
+					h2 = i
+					break
+				}
+			}
+		}
+	}
+	return calculateValue(3, []int{f, h1, h2})
+}
+
+func resolvePair(cards []Card, numMap map[int]int) int64 {
+	p1, p2, t := 0, 0, 0
+	for i := 14; i >= 2; i-- {
+		if numMap[i] == 2 {
+			if p1 == 0 {
+				p1 = i
+			} else {
+				p2 = i
+				break
+			}
+		}
+	}
+	if p1 == 0 {
+		return 0
+	}
+	ticker := make([]int, 3)
+	if p2 == 0 {
+		for i := 14; i >= 2; i-- {
+			if len(ticker) == 3 {
+				break
+			}
+			if numMap[i] == 1 {
+				ticker = append(ticker, i)
+			}
+		}
+		return calculateValue(1, ticker)
+	}
+
+	if p2 != 0 {
+		for i := 14; i >= 2; i-- {
+			if numMap[i] == 1 {
+				t = i
+				break
+			}
+		}
+		return calculateValue(2, []int{t})
+	}
+	return 0
+}
+
+func resolveHigh(cards []Card) int64 {
+	res := []int{0, 0, 0, 0, 0}
+	for index, card := range cards[0:5] {
+		res[index] = card.num
+	}
+	return calculateValue(0, res)
+}
+
+func calculateValue(level int, nums []int) int64 {
+	result := int64(level)
+	for i := 0; i < 5; i++ {
+		if i < len(nums) {
+			result = result*100 + int64(nums[i])
+		} else {
+			result *= 100
+		}
+	}
+	return result
+}
+
+func SortCards(cards []Card) {
+	sort.Slice(cards, func(i, j int) bool {
+		return cards[i].num > cards[j].num
+	})
+}
+
+func (board Board) generateTempCardList(h Hands) []Card {
+	result := append(board.ShowList, h[0], h[1])
+	SortCards(result)
+	return result
+}
+
+func generateCardNumMap(cards []Card) map[int]int {
+	numMap := make(map[int]int)
+	for i := 1; i <= 14; i++ {
+		numMap[i] = 0
+	}
+	for _, card := range cards {
+		numMap[card.Num()] += 1
+		if card.num == 14 {
+			numMap[1] += 1
+		}
+	}
+	return numMap
+}
+
+func generateTagNumMap(cards []Card) map[uint8]int {
+	tagMap := map[uint8]int{
+		'c': 0, 's': 0, 'h': 0, 'd': 0,
+	}
+	for _, card := range cards {
+		tagMap[card.tag] += 1
+	}
+	return tagMap
+}
+
+func (board Board) calculateValue(value ... int) int64 {
+	res := int64(0)
+	res = int64(value[0])
+	for _, v := range value {
+		res = res*100 + int64(v)
+	}
+	for i := len(value); i < 5; i++ {
+		res *= 100
 	}
 	return res
 }
-

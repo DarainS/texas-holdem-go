@@ -6,8 +6,9 @@ import (
 )
 
 func main() {
-	h:= board.Hands{}.FromString("AsTs")
-	board:=board.Board{}.FromString(h,"JsQsKs")
-	fmt.Println(board.ShowList)
-	fmt.Println(board.ResolveValue(h))
+	h := board.NewHands("AsTs")
+	board := board.NewBoard(h, "JsQsKs")
+	//fmt.Println(board.ShowList)
+	board.ResolveValue(h)
+	fmt.Println(board)
 }
