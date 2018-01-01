@@ -1,6 +1,7 @@
 package board
 
 import (
+	"fmt"
 	"sort"
 	"strconv"
 )
@@ -9,6 +10,14 @@ type Board struct {
 	hand     Hands
 	Deck     Deck
 	ShowList []Card
+}
+
+func Test() {
+	h := NewHands("AsTs")
+	board := NewBoard(h, "JsQsKs")
+	//fmt.Println(board.ShowList)
+	handsResult := board.ResolveHandsValue(h)
+	fmt.Println(handsResult.String())
 }
 
 type HandsResult struct {
@@ -337,7 +346,7 @@ func generateTagNumMap(cards []Card) map[uint8]int {
 	return tagMap
 }
 
-func (board *Board) calculateValue(value ... int) int64 {
+func (board *Board) calculateValue(value ...int) int64 {
 	res := int64(0)
 	res = int64(value[0])
 	for _, v := range value {

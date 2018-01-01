@@ -1,9 +1,9 @@
 package board
 
 type Card struct {
-	tag    uint8
-	num    int
-	symbol uint8
+	tag      uint8
+	num      int
+	symbol   uint8
 	IsActive bool
 }
 
@@ -11,7 +11,7 @@ var symbolTable = map[int]int{
 	'2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, 'T': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14,
 }
 
-func NewCard(s string) Card  {
+func NewCard(s string) Card {
 	return Card{}.fromString(s)
 }
 
@@ -48,7 +48,7 @@ func (c Card) Symbol() uint8 {
 type Hands [2]Card
 
 func NewHands(s string) Hands {
-	h:=Hands{}
+	h := Hands{}
 	if len(s) == 4 {
 		c1 := Card{}.fromString(s[0:2])
 		c2 := Card{}.fromString(s[2:4])

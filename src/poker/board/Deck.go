@@ -1,9 +1,9 @@
 package board
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
-	"fmt"
 )
 
 type Deck []Card
