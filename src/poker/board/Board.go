@@ -104,7 +104,7 @@ func ResolveValue(cards []Card) int64 {
 	return -1
 }
 
-func (board *Board) ResolveHandsValue(h Hands) HandsResult {
+func (board *Board) ResolveHandsResult(h Hands) HandsResult {
 	cards := board.generateTempCardList(h)
 	res := HandsResult{}
 	res.hands = h
@@ -137,7 +137,6 @@ func resolveStraightFlushAndFlush(cards []Card, numMap map[int]int, tagMap map[u
 	} else {
 		return resolveFlush(cards, tagMap)
 	}
-	return 0
 }
 
 func resolveQuads(cards []Card, numMap map[int]int) int64 {
