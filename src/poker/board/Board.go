@@ -16,7 +16,7 @@ func Test() {
 	h := NewHands("AsTs")
 	board := NewBoard(h, "JsQsKs")
 	//fmt.Println(board.ShowList)
-	handsResult := board.ResolveHandsValue(h)
+	handsResult := board.ResolveHandsResult(h)
 	fmt.Println(handsResult.String())
 }
 
