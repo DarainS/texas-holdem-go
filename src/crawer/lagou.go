@@ -3,10 +3,10 @@ package crawer
 import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
+	"io/ioutil"
 	"log"
 	"net/http"
 	url2 "net/url"
-	"io/ioutil"
 	"strings"
 )
 
@@ -36,11 +36,11 @@ func T1() string {
 	return s
 }
 
-func BuildRequestTest()  {
-	BuildRequest("go","3年及以下","深圳",2)
+func BuildRequestTest() {
+	BuildRequest("go", "3年及以下", "深圳", 2)
 }
 
-func BuildRequest(keyword,year,city string,page int)  {
+func BuildRequest(keyword, year, city string, page int) {
 	// Request (POST https://www.lagou.com/jobs/positionAjax.json?gj=3%E5%B9%B4%E5%8F%8A%E4%BB%A5%E4%B8%8B&px=default&city=%E6%B7%B1%E5%9C%B3&needAddtionalResult=false&isSchoolJob=0)
 
 	params := url2.Values{}
@@ -72,8 +72,6 @@ func BuildRequest(keyword,year,city string,page int)  {
 	req.Header.Add("DNT", "1")
 	req.Header.Add("Accept-Language", "en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7")
 	req.Header.Add("Accept", "application/json, text/javascript, */*; q=0.01")
-
-
 
 	// Fetch Request
 	resp, err := client.Do(req)

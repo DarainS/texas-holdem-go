@@ -1,9 +1,8 @@
 package main
 
 import (
-	//"./src/crawer"
+	_ "./src/crawler2"
 	"github.com/henrylee2cn/pholcus/exec"
-	_ "./src/crawer"
 )
 
 func main() {
