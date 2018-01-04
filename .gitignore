@@ -26,3 +26,6 @@ _testmain.go
 .idea/
 
 *.iml
+/texas-holdem-go
+/pholcus_pkg
+/main
