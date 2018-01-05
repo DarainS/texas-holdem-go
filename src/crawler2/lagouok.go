@@ -1,4 +1,4 @@
-package crawer
+package crawler2
 
 import (
 	"github.com/henrylee2cn/pholcus/app/downloader/request" //必需
@@ -11,8 +11,9 @@ import (
 
 //修改这个为其他岗位的，可以爬取其他岗位的数据
 
-//const positionURL = "https://www.lagou.com/zhaopin/go/?filterOption=3"
-const positionURL = "https://www.lagou.com/jobs/list_python?fromSearch=true&labelWords=relative"
+const positionURL = "https://www.lagou.com/zhaopin/go/?filterOption=3"
+
+//const positionURL = "https://www.lagou.com/jobs/list_python?fromSearch=true&labelWords=relative"
 
 func init() {
 
@@ -68,16 +69,11 @@ var lagouRuleTree = &RuleTree{
 				url, _ := nextSelection.Attr("href")
 				if len(url) != 0 && strings.HasPrefix(url, "http") {
 					ctx.AddQueue(&request.Request{
-
-						Url: url,
-
+						Url:      url,
 						TryTimes: 10,
-
-						Rule: "requestList",
-
+						Rule:     "requestList",
 						Priority: 1,
-
-						Header: header,
+						Header:   header,
 					})
 				}
 				ctx.Parse("outputResult")
@@ -90,18 +86,18 @@ var lagouRuleTree = &RuleTree{
 				"薪水",
 				"工作地点",
 				"公司",
-				"工作年限",
-				"学历",
-				"job网址",
-				"企业类型",
-				"融资状态",
+				//"工作年限",
+				//"学历",
+				//"job网址",
+				//"企业类型",
+				//"融资状态",
 			},
 
 			ParseFunc: func(ctx *Context) {
 
 				dom := ctx.GetDom()
 
-				/*
+				//*
 				dom.Find("div.list_item_top").Each(func(i int, selection *goquery.Selection) {
 					log.Fatal("sa")
 					jobName := selection.Find("div.p_top").Find("h3").Text()
@@ -111,68 +107,23 @@ var lagouRuleTree = &RuleTree{
 					city = strings.Split(city, "·")[0]
 
 					salay := selection.Find("div.p_bot").Find("span.money").Text()
-					workstring:=selection.Find("div.p_bot").Find("li_b_l").Text()
-					workstring=strings.TrimSpace(workstring)
-					workstring=strings.Replace(workstring," ","",-1)
-					worktime:=strings.Split(workstring,"/")[0]
-					studytime:=strings.Split(workstring,"/")[1]
-					joburl:=selection.Find("div.p_top").Find(".position_link#href").Text()
+					workstring := selection.Find("div.p_bot").Find("li_b_l").Text()
+					workstring = strings.TrimSpace(workstring)
+					workstring = strings.Replace(workstring, " ", "", -1)
+					//worktime:=strings.Split(workstring,"/")[0]
+					//studytime:=strings.Split(workstring,"/")[1]
+					//joburl:=selection.Find("div.p_top").Find(".position_link#href").Text()
 					company := selection.Find("div.company").Find("a").Text()
 					ctx.Output(map[int]interface{}{
 						0: jobName,
 						1: salay,
 						2: city,
 						3: company,
-						4:worktime,
-						5:studytime,
-						6:joburl,
 					})
 
 				})
 				//*/
-				//*
-				dom.Find(".con_list_item").Each(func(i int, selection *goquery.Selection) {
-					ptop := selection.Find("div.p_top")
-					pbot := selection.Find("div.p_bot")
-					jobName, find := selection.Attr("data-positionname")
-					if !find {
-						log.Fatal(string(i) + "th job name not find: " + ctx.GetUrl())
-					}
-					companyName, find := selection.Attr("data-company")
-					if !find {
-						log.Fatal(string(i) + "th company name not find: " + ctx.GetUrl())
-					}
-					salary, find := selection.Attr("data-salary")
-					if !find {
-						log.Fatal(string(i) + "th salary not find: " + ctx.GetUrl())
-					}
-					city := ptop.Find("em").Text()
-					city = strings.Split(city, "·")[0]
-					jobId, find := selection.Attr("data-positionid")
-					if !find {
-						log.Fatal(string(i) + "thjob id name not find: " + ctx.GetUrl())
-					}
-					jobUrl := "https://www.lagou.com/jobs/" + jobId + ".html"
-					workstring := pbot.Find(".li_b_l").Text()
-					studyTime := strings.TrimSpace(strings.Split(workstring, "/")[1])
-					workTime := strings.TrimSpace(strings.Split(workstring, "/")[0])
-					company := selection.Find(".company")
-					companyStr := company.Find(".company_name").Text()
-					companyDomain := strings.Split(companyStr, "/")[0]
-					rongzi := strings.Split(companyStr, "/")[1]
-					ctx.Output(map[int]interface{}{
-						0: jobName,
-						1: salary,
-						2: city,
-						3: companyName,
-						4: workTime,
-						5: studyTime,
-						6: jobUrl,
-						7: companyDomain,
-						8: rongzi,
-					})
-				})
-				//*/
+
 			},
 		},
 	},
