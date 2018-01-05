@@ -33,3 +33,5 @@ _testmain.go
 /pholcus_pkg/history
 /pholcus_pkg/cache/js
 /pholcus_pkg/logs/pholcus.log
+*.log
+pholcus.log
