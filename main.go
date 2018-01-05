@@ -1,11 +1,11 @@
 package main
 
 import (
-	_ "./src/crawler2"
+	_ "./src/crawler"
 	"github.com/henrylee2cn/pholcus/exec"
 )
 
+
 func main() {
-	//crawer.BuildRequestTest()
 	exec.DefaultRun("web")
 }
