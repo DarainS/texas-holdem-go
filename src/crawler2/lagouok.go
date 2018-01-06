@@ -1,9 +1,11 @@
 package crawler2
 
 import (
+	"github.com/bitly/go-simplejson"
 	"github.com/henrylee2cn/pholcus/app/downloader/request" //必需
 	. "github.com/henrylee2cn/pholcus/app/spider"           //必需
 	"github.com/henrylee2cn/pholcus/common/goquery"         //DOM解析
+	"github.com/henrylee2cn/pholcus/logs"
 	"net/http"
 	"strings"
 )
@@ -11,6 +13,8 @@ import (
 //修改这个为其他岗位的，可以爬取其他岗位的数据
 
 const positionURL = "https://www.lagou.com/zhaopin/go/?filterOption=3"
+
+var posrUrl = "https://www.lagou.com/jobs/positionAjax.json?city=深圳&needAddtionalResult=false&isSchoolJob=0"
 
 func init() {
 	initHeader()
@@ -36,35 +40,67 @@ var lagou = &Spider{
 	EnableCookie:    true,
 	NotDefaultField: true,
 	RuleTree:        lagouRuleTree,
+	Keyin:           KEYIN,
 }
 
 var header = http.Header{}
 
+var searchUrl2 = "https://www.lagou.com/jobs/list_"
+
+type LagouJobInfo struct {
+	PositionName  string
+	Salary        string
+	Education string
+	WorkYear      string
+	CompanyName   string
+	City          string
+	SecondType    string
+	IndustryField string
+	positionId    int
+	JobUrl        string
+	FinanceStage string
+	companyId int64
+	CompanyUrl string
+}
+
 var lagouRuleTree = &RuleTree{
-	Root: func(ctx *Context) {
-		ctx.AddQueue(&request.Request{
-			Url:      positionURL,
-			TryTimes: 10,
-			Rule:     "requestList",
-			Header:   header,
-		})
+	Root: func(context *Context) {
+		keyin := context.GetKeyin()
+		for _, key := range strings.Split(keyin, "/") {
+			context.SetKeyin(key)
+			context.AddQueue(&request.Request{
+				Url:        searchUrl2 + context.GetKeyin(),
+				TryTimes:   1,
+				Rule:       "postResultParse",
+				Header:     header,
+				Reloadable: true,
+			})
+		}
 	},
 	Trunk: map[string]*Rule{
-		"requestList": {
-			ParseFunc: func(ctx *Context) {
-				header.Set("Referer", ctx.Request.Url)
-				nextSelection := ctx.GetDom().Find("div.pager_container").Find("a").Last();
-				url, _ := nextSelection.Attr("href")
-				if len(url) != 0 && strings.HasPrefix(url, "http") {
-					ctx.AddQueue(&request.Request{
-						Url: url,
+		"postResultParse": {
+			ParseFunc: func(context *Context) {
+				dom := context.GetDom()
+				test := dom.Text()
+				reader := strings.NewReader(test)
+				jsonResult, _ := simplejson.NewFromReader(reader)
+				success, err := jsonResult.Get("success").Bool()
+				if err != nil || !success {
+					logs.Log.Error("postResultParse error")
+				}
+				pageNo, _ := jsonResult.Get("content").Get("pageNo").Int()
+				pageSize, _ := jsonResult.Get("content").Get("pageSize").Int()
+				if pageSize < 15 {
+					context.AddQueue(&request.Request{
+						Method:   "POST",
+						Url:      posrUrl,
 						TryTimes: 10,
-						Rule: "requestList",
+						Rule:     "postResultParse",
 						Priority: 1,
-						Header: header,
+						Header:   header,
+						PostData: "pn=" + string(pageNo) + "&kd=" + context.GetKeyin(),
 					})
 				}
-				ctx.Parse("outputResult")
 			},
 		},
 		"outputResult": {
@@ -74,15 +110,15 @@ var lagouRuleTree = &RuleTree{
 				"工作地点",
 				"公司",
 			},
-			ParseFunc: func(ctx *Context) {
-				dom := ctx.GetDom()
+			ParseFunc: func(context *Context) {
+				dom := context.GetDom()
 				dom.Find("div.list_item_top").Each(func(i int, selection *goquery.Selection) {
 					jobName := selection.Find("div.p_top").Find("h3").Text()
 					city := selection.Find("div.p_top").Find("em").Text()
 					city = strings.Split(city, "·")[0]
 					salay := selection.Find("div.p_bot").Find("span.money").Text()
 					company := selection.Find("div.company").Find("a").Text()
-					ctx.Output(map[int]interface{}{
+					context.Output(map[int]interface{}{
 						0: jobName,
 						1: salay,
 						2: city,

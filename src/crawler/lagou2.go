@@ -19,6 +19,7 @@ var url3 = "https://www.lagou.com/jobs/list_%E6%B8%B8%E6%88%8F%E7%AD%96%E5%88%92
 
 var searchUrl4 = []string{"https://www.lagou.com/jobs/list_", "?labelWords=&fromSearch=true&suginput="}
 
+
 var toSearch = []string{
 	"youxicehua", "go", "Java",
 }
@@ -53,11 +54,11 @@ var lagou = &Spider{
 var header = http.Header{}
 
 var lagouRuleTree = &RuleTree{
-	Root: func(ctx *Context) {
+	Root: func(context *Context) {
 		for _, word := range toSearch {
-			ctx.AddQueue(&request.Request{
+			context.AddQueue(&request.Request{
 				Url: searchUrl1 + word + "?city=深圳",
-				//Url:        searchUrl4[0]+ ctx.GetKeyin()+searchUrl4[1],
+				//Url:        searchUrl4[0]+ context.GetKeyin()+searchUrl4[1],
 				TryTimes:   10,
 				Rule:       "requestList",
 				Header:     header,
@@ -67,20 +68,21 @@ var lagouRuleTree = &RuleTree{
 	},
 	Trunk: map[string]*Rule{
 		"requestList": {
-			ParseFunc: func(ctx *Context) {
-				header.Set("Referer", ctx.Request.Url)
-				nextSelection := ctx.GetDom().Find("div.pager_container").Find("a").Last();
+			ParseFunc: func(context *Context) {
+				header.Set("Referer", context.Request.Url)
+				nextSelection := context.GetDom().Find("div.pager_container").Find("a").Last();
 				url, _ := nextSelection.Attr("href")
 				if len(url) != 0 && strings.HasPrefix(url, "http") {
-					ctx.AddQueue(&request.Request{
+					context.AddQueue(&request.Request{
 						Url:      url,
 						TryTimes: 10,
 						Rule:     "requestList",
 						Priority: 1,
 						Header:   header,
+
 					})
 				}
-				ctx.Parse("outputResult")
+				context.Parse("outputResult")
 			},
 		},
 		"outputResult": {
