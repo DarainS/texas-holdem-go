@@ -35,3 +35,4 @@ _testmain.go
 /pholcus_pkg/logs/pholcus.log
 *.log
 pholcus.log
+text_out

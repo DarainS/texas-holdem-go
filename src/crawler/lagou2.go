@@ -15,13 +15,14 @@ var positionURL = "https://www.lagou.com/zhaopin/go/?filterOption=3"
 
 var searchUrl1 = "https://www.lagou.com/zhaopin/"
 var searchUrl2 = "https://www.lagou.com/jobs/list_"
-var url3="https://www.lagou.com/jobs/list_%E6%B8%B8%E6%88%8F%E7%AD%96%E5%88%92?city=%E6%B7%B1%E5%9C%B3&cl=false&fromSearch=true&labelWords=sug&suginput=%E6%B8%B8%E6%88%8F"
+var url3 = "https://www.lagou.com/jobs/list_%E6%B8%B8%E6%88%8F%E7%AD%96%E5%88%92?city=%E6%B7%B1%E5%9C%B3&cl=false&fromSearch=true&labelWords=sug&suginput=%E6%B8%B8%E6%88%8F"
 
-var searchUrl4=[]string{"https://www.lagou.com/jobs/list_","?labelWords=&fromSearch=true&suginput="}
+var searchUrl4 = []string{"https://www.lagou.com/jobs/list_", "?labelWords=&fromSearch=true&suginput="}
 
-var toSearch=[]string{
-	"youxicehua","go","Java",
+var toSearch = []string{
+	"youxicehua", "go", "Java",
 }
+
 func init() {
 	initHeader()
 	lagou.Register()
@@ -53,15 +54,16 @@ var header = http.Header{}
 
 var lagouRuleTree = &RuleTree{
 	Root: func(ctx *Context) {
-
-		ctx.AddQueue(&request.Request{
-			//Url:        searchUrl1+ ctx.GetKeyin(),
-			Url:        searchUrl4[0]+ ctx.GetKeyin()+searchUrl4[1],
-			TryTimes:   10,
-			Rule:       "requestList",
-			Header:     header,
-			Reloadable: true,
-		})
+		for _, word := range toSearch {
+			ctx.AddQueue(&request.Request{
+				Url: searchUrl1 + word + "?city=深圳",
+				//Url:        searchUrl4[0]+ ctx.GetKeyin()+searchUrl4[1],
+				TryTimes:   10,
+				Rule:       "requestList",
+				Header:     header,
+				Reloadable: true,
+			})
+		}
 	},
 	Trunk: map[string]*Rule{
 		"requestList": {
