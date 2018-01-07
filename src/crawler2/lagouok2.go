@@ -14,24 +14,34 @@ import (
 
 const positionURL = "https://www.lagou.com/zhaopin/go/?filterOption=3"
 
-var posrUrl = "https://www.lagou.com/jobs/positionAjax.json?city=深圳&needAddtionalResult=false&isSchoolJob=0"
+var posrUrl = "https://www.lagou.com/jobs/positionAjax.json?city=%E6%B7%B1%E5%9C%B3&needAddtionalResult=false&isSchoolJob=0"
 
 func init() {
 	initHeader()
 	lagou.Register()
 }
 
+var headers = map[string]string{
+	"X-Requested-With":   "XMLHttpRequest",
+	"Connection":         "keep-alive",
+	"Accept-Encoding":    "gzip, deflate, br",
+	"Content-Type":       "application/x-www-form-urlencoded; charset=UTF-8",
+	"Origin":             "https://www.lagou.com",
+	"User-Agent":         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.108 Safari/537.36",
+	"X-Anit-Forge-Token": "None",
+	"Cookie":             "user_trace_token=20170319232847-887270c0f2234d6391cc723c7e92b2ec; LGUID=20170319233006-edd19015-0cb8-11e7-9540-5254005c3644; X_HTTP_TOKEN=5682d07ba63746fa458dcc4c177c3dd2; index_location_city=深圳; Hm_lvt_4233e74dff0ae5bd0a3d81c6ccf756e6=1512223194; Hm_lpvt_4233e74dff0ae5bd0a3d81c6ccf756e6=1512223194; _ga=GA1.2.968185037.1489937405; JSESSIONID=CFA87235570A3CD48AADBDDE2E9A97E5; _putrc=A1DCA25783F0B612; login=true; unick=Darain; TG-TRACK-CODE=index_search; _gat=1; LGSID=20180107094547-7bb89558-f34c-11e7-a01c-5254005c3644; PRE_UTM=; PRE_HOST=; PRE_SITE=https://www.lagou.com/jobs/list_Java?px=default&gx=%E5%85%A8%E8%81%8C&gj=&isSchoolJob=1&city=%E6%B7%B1%E5%9C%B3; PRE_LAND=https://www.lagou.com/jobs/list_go?city=%E6%B7%B1%E5%9C%B3&cl=false&fromSearch=true&labelWords=&suginput=&isSchoolJob=1; SEARCH_ID=b289084fbd0c4fe0b58f3756dae9a1fd; LGRID=20180107095325-8c71fcd2-f34d-11e7-bfdb-525400f775ce",
+	"Referer":            "https://www.lagou.com/jobs/list_游戏策划?labelWords=&fromSearch=true&suginput=",
+	"Host":               "www.lagou.com",
+	"DNT":                "1",
+	"Accept-Language":    "en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7",
+	"Accept":             "application/json, text/javascript, */*; q=0.01",
+	"X-Anit-Forge-Code":  "0",
+}
+
 func initHeader() {
-	header.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8")
-	header.Add("Accept-Encoding", "gzip, deflate, br")
-	header.Add("Accept-Language", "zh-CN,zh;q=0.8,en;q=0.6,fr;q=0.4,tr;q=0.2,zh-TW;q=0.2")
-	header.Add("Connection", "keep-alive")
-	header.Add("Cookie", "user_trace_token=20170910220432-f801c133-9630-11e7-8e11-525400f775ce; LGUID=20170910220432-f801c565-9630-11e7-8e11-525400f775ce; index_location_city=%E5%85%A8%E5%9B%BD; JSESSIONID=ABAAABAAADEAAFI27EBBC4DCA6B9DBD97414B0004A32D4F; TG-TRACK-CODE=index_navigation; _gat=1; PRE_UTM=; PRE_HOST=; PRE_SITE=https%3A%2F%2Fwww.lagou.com%2Fzhaopin%2Fgo%2F3%2F%3FfilterOption%3D2; PRE_LAND=https%3A%2F%2Fwww.lagou.com%2Fzhaopin%2Fgo%2F4%2F%3FfilterOption%3D3; SEARCH_ID=418a46d847344429b67029bc1470f19c; _gid=GA1.2.1008155537.1505828050; Hm_lvt_4233e74dff0ae5bd0a3d81c6ccf756e6=1505052272,1505828050; Hm_lpvt_4233e74dff0ae5bd0a3d81c6ccf756e6=1505830015; _ga=GA1.2.319466696.1505052272; LGSID=20170919220506-8a4a46e3-9d43-11e7-99b2-525400f775ce; LGRID=20170919220655-cb047879-9d43-11e7-99b2-525400f775ce")
-	header.Add("DNT", "1")
-	header.Add("Host", "www.lagou.com")
-	header.Add("Referer", "https://www.lagou.com/")
-	header.Add("Upgrade-Insecure-Requests", "1")
-	header.Add("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 9_3_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3112.113 Safari/535.36\"")
+	for key, value := range headers {
+		header.Add(key, value)
+	}
 }
 
 var lagou = &Spider{
@@ -50,7 +60,7 @@ var searchUrl2 = "https://www.lagou.com/jobs/list_"
 type LagouJobInfo struct {
 	PositionName  string
 	Salary        string
-	Education string
+	Education     string
 	WorkYear      string
 	CompanyName   string
 	City          string
@@ -58,23 +68,39 @@ type LagouJobInfo struct {
 	IndustryField string
 	positionId    int
 	JobUrl        string
-	FinanceStage string
-	companyId int64
-	CompanyUrl string
+	FinanceStage  string
+	companyId     int64
+	CompanyUrl    string
 }
 
 var lagouRuleTree = &RuleTree{
 	Root: func(context *Context) {
 		keyin := context.GetKeyin()
+		keyin = strings.TrimSpace(keyin)
+		if len(keyin) == 0 {
+			keyin = "游戏策划"
+		}
 		for _, key := range strings.Split(keyin, "/") {
 			context.SetKeyin(key)
+			//context.AddQueue(&request.Request{
+			//	Method:     "GET",
+			//	Url:        searchUrl2 + context.GetKeyin(),
+			//	TryTimes:   1,
+			//	Rule:       "postResultParse",
+			//	Header:     header,
+			//	Reloadable: true,
+			//})
 			context.AddQueue(&request.Request{
-				Url:        searchUrl2 + context.GetKeyin(),
-				TryTimes:   1,
-				Rule:       "postResultParse",
-				Header:     header,
-				Reloadable: true,
+				Method:       "POST",
+				Url:          posrUrl,
+				TryTimes:     10,
+				EnableCookie: true,
+				Rule:         "postResultParse",
+				Priority:     1,
+				Header:       header,
+				PostData:     "isfirst=false&pn=1" + "&kd=" + context.GetKeyin(),
 			})
+
 		}
 	},
 	Trunk: map[string]*Rule{
