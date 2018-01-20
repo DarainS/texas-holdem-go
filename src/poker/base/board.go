@@ -1,7 +1,6 @@
 package board
 
 import (
-	"fmt"
 	"sort"
 	"strconv"
 )
@@ -12,13 +11,7 @@ type Board struct {
 	ShowList []Card
 }
 
-func Test() {
-	h := NewHands("AsTs")
-	board := NewBoard(h, "JsQsKs")
-	//fmt.Println(board.ShowList)
-	handsResult := board.ResolveHandsResult(h)
-	fmt.Println(handsResult.String())
-}
+
 
 type HandsResult struct {
 	hands     Hands
@@ -46,6 +39,11 @@ func (r *HandsResult) String() string {
 	return r.levelText + " " + CardsToString(r.cards) + " " + strconv.FormatInt(r.value, 10)
 }
 
+
+func (r *HandsResult) Value() string {
+	return CardsToString(r.cards)+" "+r.levelText+":"+string(r.value)
+}
+
 func CardsToString(cards []Card) string {
 	res := ""
 	for _, card := range cards {
@@ -54,23 +52,42 @@ func CardsToString(cards []Card) string {
 	return res
 }
 
+func NewDefaultBoard() *Board {
+	board := Board{}
+	board.Deck = NewDeck()
+	return &board
+}
+
 func NewBoard(h Hands, s string) Board {
 	board := Board{}
 	board.hand = h
 	for i := 0; i < len(s); i += 2 {
-		board.ShowList = append(board.ShowList, NewCard(s[i:i+2]))
+		board.ShowList = append(board.ShowList, NewCardFromString(s[i:i+2]))
 	}
 	board.Deck = NewDeck()
 	return board
 }
 
-func (board *Board) DealHands(playerNum int) []Hands {
-	handsList := make([]Hands, playerNum)
-	for i := 0; i < cap(handsList); i++ {
+func (b *Board)DealShowCards(num int)[]Card  {
+	if num<=0||num>5 {
+		panic("error")
+	}
+	r:=[]Card{}
+	for i:=0;i<num ;i++  {
+		c:=b.Deck.DealOne()
+		b.ShowList=append(b.ShowList, c)
+		r=append(r,c)
+	}
+	return r
+}
+
+func (board *Board) DealHandsCards(playerNum int) []Hands {
+	handsList := []Hands{}
+	for i := 0; i < playerNum; i++ {
 		h := Hands{}
 		h[0] = board.Deck.DealOne()
 		h[1] = board.Deck.DealOne()
-		handsList[i] = h
+		handsList=append(handsList, h)
 	}
 	return handsList
 }

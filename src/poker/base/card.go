@@ -7,18 +7,35 @@ type Card struct {
 	IsActive bool
 }
 
-var symbolTable = map[int]int{
+var SymbolTable = map[int]int{
 	'2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, 'T': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14,
 }
+var TagTable = map[int]int{
+	'c': 'c', 's': 's', 'h': 'h', 'd': 'd',
+}
+var (
+	AllCardsString []string        = make([]string, 0, 52)
+	AllCards       []Card          = make([]Card, 0, 52)
+	AllCardsTable  map[string]Card = make(map[string]Card)
+)
 
-func NewCard(s string) Card {
-	return Card{}.fromString(s)
+func init() {
+	for symbol := range SymbolTable {
+		for tag := range TagTable {
+			s := string(symbol) + string(tag)
+			c := NewCardFromString(s)
+			AllCardsString = append(AllCardsString, s)
+			AllCards = append(AllCards, c)
+			AllCardsTable[s] = c
+		}
+	}
 }
 
-func (c Card) fromString(s string) Card {
+func NewCardFromString(s string) Card {
+	c := Card{}
 	c.symbol = s[0]
 	c.tag = s[1]
-	c.num = symbolTable[int(c.symbol)]
+	c.num = SymbolTable[int(c.symbol)]
 	return c
 }
 
@@ -47,11 +64,19 @@ func (c Card) Symbol() uint8 {
 
 type Hands [2]Card
 
+func NewHandsFromTwoCard(c1, c2 Card) Hands {
+	h := Hands{}
+	h[0] = c1
+	h[1] = c2
+	//SortCards([2]Card(h))
+	return h
+}
+
 func NewHands(s string) Hands {
 	h := Hands{}
 	if len(s) == 4 {
-		c1 := Card{}.fromString(s[0:2])
-		c2 := Card{}.fromString(s[2:4])
+		c1 := NewCardFromString(s[0:2])
+		c2 := NewCardFromString(s[2:4])
 		if c1.num >= c2.num {
 			h[0], h[1] = c1, c2
 		} else {
