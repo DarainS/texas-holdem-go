@@ -18,8 +18,9 @@ var _ = Suite(&MySuite{})
 
 func (s *MySuite) TestFindHandsOver(c *C) {
 	s.board = NewDefaultBoard()
-	handsList := s.board.DealHandsCards(3)
-	s.board.DealShowCards(5)
+	handsList := s.board.DealHandsCards(1)
+	cards:=s.board.DealShowCards(5)
+	fmt.Println(cards)
 	rlist := FindHandsOver(handsList[0], s.board)
 	for _, r := range rlist {
 		fmt.Println(r.String())

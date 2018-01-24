@@ -39,9 +39,7 @@ func NewCardFromString(s string) Card {
 	return c
 }
 
-func (c Card) ToString() string {
-	return string(c.symbol) + string(c.tag)
-}
+
 func (c Card) String() string {
 	return string(c.symbol) + string(c.tag)
 }
@@ -62,10 +60,10 @@ func (c Card) Symbol() uint8 {
 	return c.symbol
 }
 
-type Hands [2]Card
+type Hands []Card
 
 func NewHandsFromTwoCard(c1, c2 Card) Hands {
-	h := Hands{}
+	h := make(Hands, 2)
 	h[0] = c1
 	h[1] = c2
 	//SortCards([2]Card(h))
@@ -73,7 +71,7 @@ func NewHandsFromTwoCard(c1, c2 Card) Hands {
 }
 
 func NewHands(s string) Hands {
-	h := Hands{}
+	h := make(Hands, 2)
 	if len(s) == 4 {
 		c1 := NewCardFromString(s[0:2])
 		c2 := NewCardFromString(s[2:4])

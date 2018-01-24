@@ -11,8 +11,6 @@ type Board struct {
 	ShowList []Card
 }
 
-
-
 type HandsResult struct {
 	hands     Hands
 	cards     []Card
@@ -39,9 +37,12 @@ func (r *HandsResult) String() string {
 	return r.levelText + " " + CardsToString(r.cards) + " " + strconv.FormatInt(r.value, 10)
 }
 
+func (r *HandsResult) Value() int64 {
+	return r.value
+}
 
-func (r *HandsResult) Value() string {
-	return CardsToString(r.cards)+" "+r.levelText+":"+string(r.value)
+func (r *HandsResult) Level() int {
+	return r.level
 }
 
 func CardsToString(cards []Card) string {
@@ -58,25 +59,24 @@ func NewDefaultBoard() *Board {
 	return &board
 }
 
-func NewBoard(h Hands, s string) Board {
+func NewBoard(s string) *Board {
 	board := Board{}
-	board.hand = h
 	for i := 0; i < len(s); i += 2 {
 		board.ShowList = append(board.ShowList, NewCardFromString(s[i:i+2]))
 	}
 	board.Deck = NewDeck()
-	return board
+	return &board
 }
 
-func (b *Board)DealShowCards(num int)[]Card  {
-	if num<=0||num>5 {
+func (b *Board) DealShowCards(num int) []Card {
+	if num <= 0 || num > 5 {
 		panic("error")
 	}
-	r:=[]Card{}
-	for i:=0;i<num ;i++  {
-		c:=b.Deck.DealOne()
-		b.ShowList=append(b.ShowList, c)
-		r=append(r,c)
+	r := []Card{}
+	for i := 0; i < num; i++ {
+		c := b.Deck.DealOne()
+		b.ShowList = append(b.ShowList, c)
+		r = append(r, c)
 	}
 	return r
 }
@@ -84,10 +84,10 @@ func (b *Board)DealShowCards(num int)[]Card  {
 func (board *Board) DealHandsCards(playerNum int) []Hands {
 	handsList := []Hands{}
 	for i := 0; i < playerNum; i++ {
-		h := Hands{}
+		h := make(Hands, 2)
 		h[0] = board.Deck.DealOne()
 		h[1] = board.Deck.DealOne()
-		handsList=append(handsList, h)
+		handsList = append(handsList, h)
 	}
 	return handsList
 }
@@ -142,7 +142,7 @@ func resolveStraightFlushAndFlush(cards []Card, numMap map[int]int, tagMap map[u
 	if tag == 0 {
 		return 0
 	}
-	straightCards := make([]Card, 7)
+	straightCards := []Card{}
 	for _, card := range cards {
 		if card.tag == tag {
 			straightCards = append(straightCards, card)
@@ -207,6 +207,7 @@ func resolveFlush(cardList []Card, tagMap map[uint8]int) int64 {
 			break
 		}
 	}
+
 	if tag == 0 {
 		return 0
 	}
@@ -220,7 +221,7 @@ func resolveFlush(cardList []Card, tagMap map[uint8]int) int64 {
 func testStraight(cards []Card, numMap map[int]int) int {
 	for i := 14; i >= 5; i-- {
 		isStraight := true
-		for j := 0; i <= 4; j++ {
+		for j := 0; j <= 4; j++ {
 			if !(numMap[i-j] >= 1) {
 				isStraight = false
 				break
@@ -281,17 +282,17 @@ func resolvePair(cards []Card, numMap map[int]int) int64 {
 	if p1 == 0 {
 		return 0
 	}
-	ticker := make([]int, 3)
+	values := []int{p1}
 	if p2 == 0 {
 		for i := 14; i >= 2; i-- {
-			if len(ticker) == 3 {
+			if len(values) >= 4 {
 				break
 			}
 			if numMap[i] == 1 {
-				ticker = append(ticker, i)
+				values = append(values, i)
 			}
 		}
-		return calculateValue(1, ticker)
+		return calculateValue(1, values)
 	}
 
 	if p2 != 0 {
@@ -301,7 +302,7 @@ func resolvePair(cards []Card, numMap map[int]int) int64 {
 				break
 			}
 		}
-		return calculateValue(2, []int{t})
+		return calculateValue(2, []int{p1, p2, t})
 	}
 	return 0
 }
@@ -332,7 +333,7 @@ func SortCards(cards []Card) {
 	})
 }
 
-func (board Board) generateTempCardList(h Hands) []Card {
+func (board *Board) generateTempCardList(h Hands) []Card {
 	result := append(board.ShowList, h[0], h[1])
 	SortCards(result)
 	return result

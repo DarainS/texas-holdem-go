@@ -1,7 +1,7 @@
 package statistics
 
 import (
-	base "../base"
+	. "../base"
 	"sync"
 )
 
@@ -9,23 +9,23 @@ var (
 	ThredNum = 4
 )
 
-func generateAllPossibleHandsFromBoard(board *base.Board) *[]base.Hands {
+func generateAllPossibleHandsFromBoard(board *Board) []Hands {
 	deck := board.Deck
-	cards := []base.Card(deck)
+	cards := []Card(deck)
 	l := len(cards)
-	result := make([]base.Hands, 0,l*(l-1))
+	result := make([]Hands, 0, l*(l-1))
 	for i1 := 0; i1 < l; i1++ {
 		for i2 := i1 + 1; i2 < l; i2++ {
-			h := base.NewHandsFromTwoCard((cards)[i1], (cards)[i2])
+			h := NewHandsFromTwoCard((cards)[i1], (cards)[i2])
 			result = append(result, h)
 		}
 	}
-	return &result
+	return result
 }
 
-type HandsResultFilter func(result base.HandsResult) bool
+type HandsResultFilter func(result HandsResult) bool
 
-func batchCalculate(board *base.Board, handsList []base.Hands, filter HandsResultFilter, result chan base.HandsResult, wg *sync.WaitGroup) {
+func batchCalculate(board Board, handsList []Hands, result chan HandsResult, wg *sync.WaitGroup, filter HandsResultFilter) {
 	for _, hands := range handsList {
 		r := board.ResolveHandsResult(hands)
 		if filter(r) {
@@ -35,39 +35,36 @@ func batchCalculate(board *base.Board, handsList []base.Hands, filter HandsResul
 	wg.Done()
 }
 
-func FindHandsOver(ourHands base.Hands, board *base.Board) []base.HandsResult {
+func batchCalculateHandsResult(board *Board,handsList []Hands,threadNum int,filter HandsResultFilter) []HandsResult {
+	wg := sync.WaitGroup{}
+	totalLen:=len(handsList)
+	l :=totalLen  / threadNum
+	resultChannel := make(chan HandsResult, totalLen)
 
-	allPossibleHands := *generateAllPossibleHandsFromBoard(board)
-
-	l := len(allPossibleHands) / ThredNum
-
-	resultChannel := make(chan base.HandsResult, len(allPossibleHands))
-
-	r1 := board.ResolveHandsResult(ourHands)
-
-	wg := &sync.WaitGroup{}
-
-	for i := 0; i < ThredNum-1; i++ {
+	for i := 0; i < threadNum-1; i++ {
 		wg.Add(1)
-		go batchCalculate(board, allPossibleHands[l*i:l*(i+1)], func(result base.HandsResult) bool {
-			return result.Value() >= r1.Value()
-		}, resultChannel, wg)
+		go batchCalculate(*board, handsList[l*i:l*(i+1)],  resultChannel, &wg,filter)
 	}
 
 	wg.Add(1)
-	go batchCalculate(board, allPossibleHands[l*(ThredNum-1):], func(result base.HandsResult) bool {
-		return result.Value() >= r1.Value()
-	}, resultChannel, wg)
+	go batchCalculate(*board, handsList[l*(threadNum-1):], resultChannel, &wg,filter)
 
 	wg.Wait()
-
 	close(resultChannel)
-
-	resultList := make([]base.HandsResult,0, len(resultChannel))
-
+	resultList := make([]HandsResult, 0, len(resultChannel))
 	for r := range resultChannel {
 		resultList = append(resultList, r)
 	}
+	return resultList
+}
+
+func FindHandsOver(ourHands Hands, board *Board) []HandsResult {
+	baseResult := board.ResolveHandsResult(ourHands)
+	allPossibleHands := generateAllPossibleHandsFromBoard(board)
+
+	resultList:= batchCalculateHandsResult(board,allPossibleHands,4, func(result HandsResult) bool {
+		return result.Value()>=baseResult.Value()
+	})
 
 	return resultList
 }
