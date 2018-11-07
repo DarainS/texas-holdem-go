@@ -6,9 +6,10 @@ import (
 )
 
 type Board struct {
-	hand     Hands
+	Players  []Player
 	Deck     Deck
 	ShowList []Card
+	Hands    []Hands
 }
 
 type HandsResult struct {
@@ -45,14 +46,6 @@ func (r *HandsResult) Level() int {
 	return r.level
 }
 
-func CardsToString(cards []Card) string {
-	res := ""
-	for _, card := range cards {
-		res += card.String()
-	}
-	return res
-}
-
 func NewDefaultBoard() *Board {
 	board := Board{}
 	board.Deck = NewDeck()
@@ -68,21 +61,21 @@ func NewBoard(s string) *Board {
 	return &board
 }
 
-func (b *Board) DealShowCards(num int) []Card {
+func (board *Board) DealShowCards(num int) []Card {
 	if num <= 0 || num > 5 {
 		panic("error")
 	}
-	r := []Card{}
+	var r []Card
 	for i := 0; i < num; i++ {
-		c := b.Deck.DealOne()
-		b.ShowList = append(b.ShowList, c)
+		c := board.Deck.DealOne()
+		board.ShowList = append(board.ShowList, c)
 		r = append(r, c)
 	}
 	return r
 }
 
 func (board *Board) DealHandsCards(playerNum int) []Hands {
-	handsList := []Hands{}
+	var handsList []Hands
 	for i := 0; i < playerNum; i++ {
 		h := make(Hands, 2)
 		h[0] = board.Deck.DealOne()
@@ -142,7 +135,7 @@ func resolveStraightFlushAndFlush(cards []Card, numMap map[int]int, tagMap map[u
 	if tag == 0 {
 		return 0
 	}
-	straightCards := []Card{}
+	var straightCards []Card
 	for _, card := range cards {
 		if card.tag == tag {
 			straightCards = append(straightCards, card)

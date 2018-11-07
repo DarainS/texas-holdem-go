@@ -97,3 +97,11 @@ func (h Hands) ToSingleString() string {
 	}
 	return s1 + "o"
 }
+func CardsToString(cards []Card) string {
+	res := ""
+	for _, card := range cards {
+		res += card.String()
+	}
+	return res
+}
+

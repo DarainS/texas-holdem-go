@@ -2,7 +2,7 @@ package statistics_test
 
 import (
 	"testing"
-	. "../base"
+	. "../model"
 	. "../statistics"
 	. "gopkg.in/check.v1"
 	"fmt"

@@ -1,7 +1,7 @@
 package main
 
 import "fmt"
-import . "./base"
+import . "./model"
 import . "./statistics"
 
 func main() {
@@ -12,4 +12,9 @@ func main() {
 	for _, r := range rlist {
 		fmt.Println(r.String())
 	}
+}
+
+func testPointer()  {
+	deck:=Deck{}
+	deck.DealOne()
 }

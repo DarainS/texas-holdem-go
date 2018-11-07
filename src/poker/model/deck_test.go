@@ -1,7 +1,7 @@
 package board_test
 
 import (
-	. "../base"
+	. "./"
 	"testing"
 	. "gopkg.in/check.v1"
 	"fmt"

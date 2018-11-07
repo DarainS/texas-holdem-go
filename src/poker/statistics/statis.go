@@ -1,12 +1,12 @@
 package statistics
 
 import (
-	. "../base"
+	. "../model"
 	"sync"
 )
 
 var (
-	ThredNum = 4
+	ThreadNum = 4
 )
 
 func generateAllPossibleHandsFromBoard(board *Board) []Hands {
