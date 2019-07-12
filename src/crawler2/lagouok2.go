@@ -10,11 +10,7 @@ import (
 	"strings"
 )
 
-//修改这个为其他岗位的，可以爬取其他岗位的数据
-
-const positionURL = "https://www.lagou.com/zhaopin/go/?filterOption=3"
-
-var posrUrl = "https://www.lagou.com/jobs/positionAjax.json?city=%E6%B7%B1%E5%9C%B3&needAddtionalResult=false&isSchoolJob=0"
+var posrUrl = "https://www.lagou.com/jobs/positionAjax.json?city=%E6%B7%B1%E5%9C%B3&needAddtionalResult=false"
 
 func init() {
 	initHeader()
@@ -45,7 +41,7 @@ func initHeader() {
 }
 
 var lagou = &Spider{
-	Name:            "拉勾-岗位",
+	Name:            "拉勾-岗位2",
 	Description:     "拉勾上的全部岗位【https://www.lagou.com】",
 	EnableCookie:    true,
 	NotDefaultField: true,
@@ -91,14 +87,13 @@ var lagouRuleTree = &RuleTree{
 			//	Reloadable: true,
 			//})
 			context.AddQueue(&request.Request{
-				Method:       "POST",
-				Url:          posrUrl,
-				TryTimes:     10,
+				Url:          posrUrl+"&isfirst=false&pn=1&kw="+context.GetKeyin(),
+				TryTimes:     1,
 				EnableCookie: true,
 				Rule:         "postResultParse",
 				Priority:     1,
 				Header:       header,
-				PostData:     "isfirst=false&pn=1" + "&kd=" + context.GetKeyin(),
+				//PostData:     "isfirst=false&pn=1" + "&kd=" + context.GetKeyin(),
 			})
 
 		}
@@ -118,13 +113,12 @@ var lagouRuleTree = &RuleTree{
 				pageSize, _ := jsonResult.Get("content").Get("pageSize").Int()
 				if pageSize < 15 {
 					context.AddQueue(&request.Request{
-						Method:   "POST",
-						Url:      posrUrl,
-						TryTimes: 10,
-						Rule:     "postResultParse",
-						Priority: 1,
-						Header:   header,
-						PostData: "pn=" + string(pageNo) + "&kd=" + context.GetKeyin(),
+						Url:          posrUrl+"&isfirst=false&pn="+string(pageNo)+"&kw="+context.GetKeyin(),
+						TryTimes:     2,
+						EnableCookie: true,
+						Rule:         "postResultParse",
+						Priority:     1,
+						Header:       header,
 					})
 				}
 			},

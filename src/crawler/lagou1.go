@@ -11,13 +11,7 @@ import (
 
 //修改这个为其他岗位的，可以爬取其他岗位的数据
 
-var positionURL = "https://www.lagou.com/zhaopin/go/?filterOption=3"
-
-var searchUrl1 = "https://www.lagou.com/zhaopin/"
-var searchUrl2 = "https://www.lagou.com/jobs/list_"
-var url3 = "https://www.lagou.com/jobs/list_%E6%B8%B8%E6%88%8F%E7%AD%96%E5%88%92?city=%E6%B7%B1%E5%9C%B3&cl=false&fromSearch=true&labelWords=sug&suginput=%E6%B8%B8%E6%88%8F"
-
-var searchUrl4 = []string{"https://www.lagou.com/jobs/list_", "?labelWords=&fromSearch=true&suginput="}
+var searchUrl1 = "https://www.lagou.com/shenzhen-zhaopin/"
 
 
 var toSearch = []string{
@@ -43,7 +37,7 @@ func initHeader() {
 }
 
 var lagou = &Spider{
-	Name:            "拉勾-岗位",
+	Name:            "拉勾-岗位1",
 	Description:     "拉勾上的全部岗位【https://www.lagou.com】",
 	EnableCookie:    true,
 	NotDefaultField: true,
@@ -57,7 +51,7 @@ var lagouRuleTree = &RuleTree{
 	Root: func(context *Context) {
 		for _, word := range toSearch {
 			context.AddQueue(&request.Request{
-				Url: searchUrl1 + word + "?city=深圳",
+				Url: searchUrl1 + word ,
 				//Url:        searchUrl4[0]+ context.GetKeyin()+searchUrl4[1],
 				TryTimes:   10,
 				Rule:       "requestList",
